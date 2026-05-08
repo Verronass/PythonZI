@@ -1,4 +1,5 @@
 import tkinter as tk
+from logic import encrypt, decrypt
 
 # --- Colors ---
 BG_MAIN = "#8B5CF6"
@@ -11,8 +12,7 @@ def on_encrypt():
     text = input_field.get("1.0", "end-1c").strip()
     if not text:
         return
-    # Поки заглушка — логіка буде від партнера
-    result = f"[encrypted]: {text[::-1]}"
+    result = encrypt(text)
     output_field.config(state="normal")
     output_field.delete("1.0", "end")
     output_field.insert("1.0", result)
