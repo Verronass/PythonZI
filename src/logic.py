@@ -1,20 +1,8 @@
-def encrypt(text: str, method: str = "Caesar", key: str = "") -> str:
+def encrypt(text: str, key: str = "") -> str:
     # TODO: партнер реалізує логіку
-    if method == "Caesar":
-        return text[::-1]
-    elif method == "AES-256":
-        return text[::-1]
-    elif method == "RSA":
-        return text[::-1]
-    return text
+    return text[::-1]
 
 
-def decrypt(text: str, method: str = "Caesar", key: str = "") -> str:
+def decrypt(text: str, key: str = "") -> str:
     # TODO: партнер реалізує логіку
-    if method == "Caesar":
-        return text[::-1]
-    elif method == "AES-256":
-        return text[::-1]
-    elif method == "RSA":
-        return text[::-1]
-    return text
+    return text[::-1]
