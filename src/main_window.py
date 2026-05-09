@@ -1,117 +1,96 @@
 import tkinter as tk
 from logic import decrypt
 
-BG_MAIN = "#000000"
-COLOR_GREEN = "#00C896"
-FONT_TITLE = ("Courier New", 16, "bold")
-FONT_MAIN = ("Courier New", 13, "bold")
+BG = "#0d0d0d"
+BG_CARD = "#111111"
+GREEN = "#00c896"
+GREEN_DIM = "#005940"
+GREEN_HINT = "#1a3d32"
+FONT_TITLE = ("Courier New", 18, "bold")
+FONT_BTN   = ("Courier New", 13, "bold")
 FONT_SMALL = ("Courier New", 11)
+FONT_HINT  = ("Courier New", 9)
+
+PLACEHOLDER = "ввести ключ"
 
 def on_decrypt():
     key = key_field.get().strip()
-    if key == "ввести ключ" or not key:
+    if key == PLACEHOLDER or not key:
+        _set_output("⚠  введіть ключ")
         return
-    text = input_field.get("1.0", "end-1c").strip()
-    if not text:
-        return
-    result = decrypt(text, key)
+    result = decrypt(key=key)
+    _set_output(result)
+
+def _set_output(text):
     output_field.config(state="normal")
     output_field.delete("1.0", "end")
-    output_field.insert("1.0", result)
+    output_field.insert("1.0", text)
     output_field.config(state="disabled")
 
 def build_ui(root):
     root.title("Дишефратор")
-    root.geometry("320x420")
-    root.configure(bg=BG_MAIN)
+    root.geometry("360x400")
+    root.configure(bg=BG)
     root.resizable(False, False)
 
-    card = tk.Frame(root, bg=BG_MAIN)
-    card.place(relx=0.5, rely=0.5, anchor="center")
+    # Зовнішня рамка — картка
+    card = tk.Frame(root, bg=BG_CARD, bd=0, highlightbackground=GREEN_DIM,
+                    highlightthickness=1)
+    card.place(relx=0.5, rely=0.5, anchor="center", width=300, height=340)
 
     # Заголовок
-    tk.Label(
-        card,
-        text="дишефратор",
-        font=FONT_TITLE,
-        fg=COLOR_GREEN,
-        bg=BG_MAIN,
-    ).pack(pady=(0, 24))
+    tk.Label(card, text="дишефратор", font=FONT_TITLE,
+             fg=GREEN, bg=BG_CARD).place(relx=0.5, y=32, anchor="center")
 
-    # Поле для ключа з placeholder
+    # Роздільник
+    tk.Frame(card, bg=GREEN_DIM, height=1).place(x=20, y=58, width=260)
+
+    # Поле ключа
     global key_field
-    key_field = tk.Entry(
-        card,
-        font=FONT_MAIN,
-        fg=COLOR_GREEN,
-        bg=BG_MAIN,
-        bd=2,
-        relief="solid",
-        highlightbackground=COLOR_GREEN,
-        highlightthickness=1,
-        insertbackground=COLOR_GREEN,
-        width=22,
-        show="",
-    )
-    key_field.insert(0, "ввести ключ")
+    key_field = tk.Entry(card, font=FONT_BTN, fg=GREEN_DIM, bg=BG,
+                         bd=0, highlightbackground=GREEN_DIM,
+                         highlightthickness=1, insertbackground=GREEN,
+                         relief="flat", width=22)
+    key_field.insert(0, PLACEHOLDER)
+    key_field.place(relx=0.5, y=110, anchor="center", height=38, width=260)
 
-    def on_focus_in(e):
-        if key_field.get() == "ввести ключ":
+    def focus_in(e):
+        if key_field.get() == PLACEHOLDER:
             key_field.delete(0, "end")
-            key_field.config(show="*")
+            key_field.config(fg=GREEN, show="*")
 
-    def on_focus_out(e):
+    def focus_out(e):
         if not key_field.get():
-            key_field.config(show="")
-            key_field.insert(0, "ввести ключ")
+            key_field.config(show="", fg=GREEN_DIM)
+            key_field.insert(0, PLACEHOLDER)
 
-    key_field.bind("<FocusIn>", on_focus_in)
-    key_field.bind("<FocusOut>", on_focus_out)
-    key_field.pack(pady=(0, 16), ipady=8)
+    key_field.bind("<FocusIn>", focus_in)
+    key_field.bind("<FocusOut>", focus_out)
+    key_field.bind("<Return>", lambda e: on_decrypt())
 
     # Кнопка
-    tk.Button(
-        card,
-        text="кнопка",
-        font=FONT_MAIN,
-        fg=COLOR_GREEN,
-        bg=BG_MAIN,
-        activebackground="#001a12",
-        activeforeground=COLOR_GREEN,
-        bd=2,
-        relief="solid",
-        highlightbackground=COLOR_GREEN,
-        highlightthickness=1,
-        padx=24,
-        pady=6,
-        cursor="hand2",
-        command=on_decrypt,
-    ).pack(pady=(0, 16))
+    btn = tk.Button(card, text="розшифрувати", font=FONT_BTN,
+                    fg=GREEN, bg=BG, activebackground=GREEN_HINT,
+                    activeforeground=GREEN, bd=0,
+                    highlightbackground=GREEN, highlightthickness=1,
+                    relief="flat", cursor="hand2", command=on_decrypt)
+    btn.place(relx=0.5, y=178, anchor="center", height=38, width=200)
 
-    # Вивід повідомлення
+    # Роздільник
+    tk.Frame(card, bg=GREEN_DIM, height=1).place(x=20, y=210, width=260)
+
+    # Вивід
     global output_field
-    output_field = tk.Text(
-        card,
-        font=FONT_SMALL,
-        fg=COLOR_GREEN,
-        bg=BG_MAIN,
-        bd=2,
-        relief="solid",
-        highlightbackground=COLOR_GREEN,
-        highlightthickness=1,
-        width=28,
-        height=3,
-        padx=8,
-        pady=6,
-        wrap="word",
-        state="disabled",
-    )
-    output_field.pack()
+    output_field = tk.Text(card, font=FONT_SMALL, fg=GREEN, bg=BG,
+                           bd=0, highlightbackground=GREEN_DIM,
+                           highlightthickness=1, relief="flat",
+                           wrap="word", state="disabled",
+                           padx=10, pady=8)
+    output_field.place(x=20, y=222, width=260, height=90)
 
-    # Прихований input (зашифрований текст підтягується програмно)
-    global input_field
-    input_field = tk.Text(root, width=1, height=1)
-    input_field.place(x=-100, y=-100)
+    # Підказка внизу
+    tk.Label(card, text="XOR · first.txt", font=FONT_HINT,
+             fg=GREEN_DIM, bg=BG_CARD).place(relx=0.5, y=326, anchor="center")
 
 
 if __name__ == "__main__":
