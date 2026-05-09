@@ -1,15 +1,17 @@
 import tkinter as tk
-from logic import decrypt
+from logic import decrypt, read_encrypted
 
-BG = "#0d0d0d"
-BG_CARD = "#111111"
-GREEN = "#00c896"
-GREEN_DIM = "#005940"
-GREEN_HINT = "#1a3d32"
+BG        = "#080808"
+BG_FIELD  = "#0f1f18"
+BG_BTN    = "#0d2e20"
+GREEN     = "#00c896"
+GREEN_MID = "#008c68"
+GREEN_DIM = "#1a4a38"
+
 FONT_TITLE = ("Courier New", 18, "bold")
-FONT_BTN   = ("Courier New", 13, "bold")
-FONT_SMALL = ("Courier New", 11)
-FONT_HINT  = ("Courier New", 9)
+FONT_LABEL = ("Courier New",  9)
+FONT_FIELD = ("Courier New", 10)
+FONT_BTN   = ("Courier New", 11, "bold")
 
 PLACEHOLDER = "ввести ключ"
 
@@ -18,8 +20,7 @@ def on_decrypt():
     if key == PLACEHOLDER or not key:
         _set_output("⚠  введіть ключ")
         return
-    result = decrypt(key=key)
-    _set_output(result)
+    _set_output(decrypt(key=key))
 
 def _set_output(text):
     output_field.config(state="normal")
@@ -28,69 +29,88 @@ def _set_output(text):
     output_field.config(state="disabled")
 
 def build_ui(root):
-    root.title("Дишефратор")
-    root.geometry("360x400")
+    root.title("Дешифратор")
     root.configure(bg=BG)
     root.resizable(False, False)
 
-    # Зовнішня рамка — картка
-    card = tk.Frame(root, bg=BG_CARD, bd=0, highlightbackground=GREEN_DIM,
-                    highlightthickness=1)
-    card.place(relx=0.5, rely=0.5, anchor="center", width=300, height=340)
+    outer = tk.Frame(root, bg=BG, padx=24, pady=20)
+    outer.pack()
 
     # Заголовок
-    tk.Label(card, text="дишефратор", font=FONT_TITLE,
-             fg=GREEN, bg=BG_CARD).place(relx=0.5, y=32, anchor="center")
+    tk.Label(outer, text="[ дешифратор ]", font=FONT_TITLE,
+             fg=GREEN, bg=BG).pack(pady=(0, 4))
+    tk.Frame(outer, bg=GREEN_DIM, height=1, width=340).pack(pady=(0, 8))
 
-    # Роздільник
-    tk.Frame(card, bg=GREEN_DIM, height=1).place(x=20, y=58, width=260)
+    # Зашифрований текст
+    tk.Label(outer, text="// зашифрована інформація з файлу",
+             font=FONT_LABEL, fg=GREEN_DIM, bg=BG, anchor="w",
+             width=40).pack(anchor="w", pady=(0, 2))
+    enc = tk.Text(outer, font=("Courier New", 8), fg=GREEN_MID, bg=BG_FIELD,
+                  bd=0, highlightbackground=GREEN_DIM, highlightthickness=1,
+                  relief="flat", wrap="char", height=4,
+                  padx=10, pady=8, width=40, cursor="arrow")
+    enc.insert("1.0", read_encrypted())
+    enc.config(state="disabled")
+    enc.pack()
 
-    # Поле ключа
+    # Ключ
+    tk.Label(outer, text="// ключ розшифрування",
+             font=FONT_LABEL, fg=GREEN_DIM, bg=BG, anchor="w",
+             width=40).pack(anchor="w", pady=(12, 2))
+
     global key_field
-    key_field = tk.Entry(card, font=FONT_BTN, fg=GREEN_DIM, bg=BG,
+    key_field = tk.Entry(outer, font=FONT_FIELD, fg=GREEN_DIM, bg=BG_FIELD,
                          bd=0, highlightbackground=GREEN_DIM,
                          highlightthickness=1, insertbackground=GREEN,
-                         relief="flat", width=22)
+                         relief="flat", width=40)
     key_field.insert(0, PLACEHOLDER)
-    key_field.place(relx=0.5, y=110, anchor="center", height=38, width=260)
+    key_field.pack(ipady=9)
 
-    def focus_in(e):
+    def fi(e):
         if key_field.get() == PLACEHOLDER:
             key_field.delete(0, "end")
-            key_field.config(fg=GREEN, show="*")
+            key_field.config(fg=GREEN, show="*", highlightbackground=GREEN_MID)
 
-    def focus_out(e):
+    def fo(e):
         if not key_field.get():
-            key_field.config(show="", fg=GREEN_DIM)
+            key_field.config(show="", fg=GREEN_DIM, highlightbackground=GREEN_DIM)
             key_field.insert(0, PLACEHOLDER)
 
-    key_field.bind("<FocusIn>", focus_in)
-    key_field.bind("<FocusOut>", focus_out)
+    key_field.bind("<FocusIn>", fi)
+    key_field.bind("<FocusOut>", fo)
     key_field.bind("<Return>", lambda e: on_decrypt())
 
-    # Кнопка
-    btn = tk.Button(card, text="розшифрувати", font=FONT_BTN,
-                    fg=GREEN, bg=BG, activebackground=GREEN_HINT,
-                    activeforeground=GREEN, bd=0,
-                    highlightbackground=GREEN, highlightthickness=1,
-                    relief="flat", cursor="hand2", command=on_decrypt)
-    btn.place(relx=0.5, y=178, anchor="center", height=38, width=200)
+    # Кнопка — примусово темна через canvas trick
+    btn_frame = tk.Frame(outer, bg=BG_BTN,
+                         highlightbackground=GREEN_MID, highlightthickness=1)
+    btn_frame.pack(pady=12)
 
-    # Роздільник
-    tk.Frame(card, bg=GREEN_DIM, height=1).place(x=20, y=210, width=260)
+    btn = tk.Label(btn_frame, text="▶  розшифрувати", font=FONT_BTN,
+                   fg=GREEN, bg=BG_BTN, cursor="hand2",
+                   padx=40, pady=8)
+    btn.pack()
+    btn.bind("<Button-1>", lambda e: on_decrypt())
+    btn.bind("<Enter>",    lambda e: btn.config(bg="#0d3d28"))
+    btn.bind("<Leave>",    lambda e: btn.config(bg=BG_BTN))
+    btn_frame.bind("<Button-1>", lambda e: on_decrypt())
 
     # Вивід
+    tk.Label(outer, text="// розшифрований текст",
+             font=FONT_LABEL, fg=GREEN_DIM, bg=BG, anchor="w",
+             width=40).pack(anchor="w", pady=(0, 2))
+
     global output_field
-    output_field = tk.Text(card, font=FONT_SMALL, fg=GREEN, bg=BG,
+    output_field = tk.Text(outer, font=FONT_FIELD, fg=GREEN, bg=BG_FIELD,
                            bd=0, highlightbackground=GREEN_DIM,
                            highlightthickness=1, relief="flat",
-                           wrap="word", state="disabled",
-                           padx=10, pady=8)
-    output_field.place(x=20, y=222, width=260, height=90)
+                           wrap="word", height=4, padx=10, pady=8,
+                           width=40, state="disabled")
+    output_field.pack()
 
-    # Підказка внизу
-    tk.Label(card, text="XOR · first.txt", font=FONT_HINT,
-             fg=GREEN_DIM, bg=BG_CARD).place(relx=0.5, y=326, anchor="center")
+    # Футер
+    tk.Frame(outer, bg=GREEN_DIM, height=1, width=340).pack(pady=(12, 4))
+    tk.Label(outer, text="XOR encryption  ·  first.txt",
+             font=FONT_LABEL, fg=GREEN_DIM, bg=BG).pack()
 
 
 if __name__ == "__main__":
